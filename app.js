@@ -4,12 +4,16 @@ const request = require('request')
   , reduce = require("stream-reduce")
   , mapValues = require('lodash.mapvalues')
   , keys = require('lodash.keys')
+  , difference = require('lodash.difference')
+  , assign = require('lodash.assign')
   , elasticsearch = require('elasticsearch')
+  , hash = require('object-hash')
   , client = new elasticsearch.Client({
    host: 'localhost:9200',
    log: 'trace',
  });
 
+const INDEX = 'poder-compranet';
 const docCount = 0;
 const timestamp = new Date().getTime();
 
@@ -23,7 +27,7 @@ const propertiesMapDefault = {
     "IMPORTE_CONTRATO": { "type": "float" },
 }
 
-function coerce(field, value) {
+function mapField(field) {
   if (/FECHA/.test(field)) {
     return {
       type: "date",
@@ -39,78 +43,93 @@ function coerce(field, value) {
   }
 }
 
-function updateMapping(propertiesMap, object) {
-  return mapValues(object, (v, k, o) => {
-    if (!(k in propertiesMap)) {
-      const esType = coerce(k, v);
-      propertiesMap[k] = esType;
-    }
-  });
-}
-
 function createIndex() {
+  // if exists return mapping
+  // else create index
   return client.indices.exists({
-    index: 'poder-compranet',
+    index: INDEX,
   }).then((exists) => {
-    if (!exists) {
-      return client.indices.create({
-        index: index,
+    if (exists) {
+      return client.indices.getMapping({
+        index: INDEX,
+        type: 'compranet',
       });
     }
+    return client.indices.create({
+      index: 'poder-compranet',
+      body: {
+        mappings: {
+          compranet: {
+            properties: {
+              IMPORTE_CONTRATO: { type : "float" }
+            }
+          }
+        }
+      }
+    });
   })
 }
 
 function addDocumentToIndex(doc) {
-  return client.index({
-    index: 'poder-compranet',
+  return client.create({
+    index: INDEX,
     type: 'compranet',
+    id: hash(doc),
     body: doc,
-  })
+  });
 }
 
-function getMapping() {
-  return client.indices.getMapping({
-    index: 'poder-compranet',
-    type: 'compranet',
-  });
+function updateMapping(pMap, array) {
+  array.forEach((e) => {
+    const o = {};
+    o[e] = mapField(e);
+    assign(pMap, o);
+  })
+  return pMap;
 }
 
 function putMapping(mapping) {
   return client.indices.putMapping({
-    index: 'poder-compranet',
+    index: INDEX,
     type: 'compranet',
     body: mapping
   });
 }
 
 function main(mapping) {
-  request({ url: URL })
+  const count = 0;
+  request
+    .get({ url: URL })
+    .on('error', (error) => {
+      throw error
+    })
     .pipe(JSONStream.parse())
     .pipe(reduce((acc, data) => {
       addDocumentToIndex(data);
-      if (keys(data).length > keys(acc).length) {
-        return updateMapping(acc, data);
+      const diff = difference(keys(data), keys(acc));
+      if (diff.length > 0) {
+        updateMapping(acc, diff);
       }
     }, mapping)).on('data', (pMap) => {
-      console.log(pMap);
-      putMapping(pMap);
+      const diff = (difference(keys(mapping), keys(pMap)));
+      if (diff > 1) {
+        return putMapping(pMap);
+      }
+      return true;
     });
 }
 
-
-process.stdin.pipe(reduce(function(acc, data) {
-  return acc + data.length;
-}, 0)).on("data", function(length) {
-  console.log("stdin size:", length);
-});
-
 ping.then(() => {
   console.log('Contacted elasticsearch');
-  getMapping().then((mapping) => {
-    console.log(mapping)
-    createIndex().then((result) =>{
-      main(mapping);
-    })
+  createIndex().then((mapping) => {
+    let properties = {};
+    if (mapping['poder-compranet']) {
+      // const index = mapping['poder-compranet'];
+      // console.log(index);
+      properties = mapping['poder-compranet'].mappings.compranet.properties;
+    }
+    // console.log(properties)
+    main(properties);
   })
 }, (error) => {
   console.trace(error.message);
