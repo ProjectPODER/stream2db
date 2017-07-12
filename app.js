@@ -19,6 +19,13 @@ const SOURCES = process.argv.slice(2).map((e) => {
   return `${PROXY_URL}/${e}`;
 });
 
+const KNOWN_BOOLS = [
+  'CONVENIO_MODIFICATORIO',
+  'CONTRATO_MARCO',
+  'COMPRA_CONSOLIDADA',
+  'PLURIANUAL',
+]
+
 // const URL = '/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip';
 
 const ping = client.ping({
@@ -40,8 +47,13 @@ function mapField(field) {
       type: "float",
     }
   }
+  if (KNOWN_BOOLS.indexOf(field) > -1) {
+    return {
+      type: "bool",
+    }
+  }
   return {
-    type: "string"
+    type: "string",
   }
 }
 
@@ -63,7 +75,8 @@ function createIndex() {
         mappings: {
           compranet: {
             properties: {
-              IMPORTE_CONTRATO: { type : "float" }
+              IMPORTE_CONTRATO: { type : "float" },
+              timestamp: { type : "date", format: "epoch_millis" },
             }
           }
         }
