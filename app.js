@@ -14,10 +14,12 @@ const request = require('request')
  });
 
 const INDEX = 'poder-compranet';
-const docCount = 0;
-const timestamp = new Date().getTime();
+const PROXY_URL = 'https://excel2json.herokuapp.com';
+const SOURCES = process.argv.slice(2).map((e) => {
+  return `${PROXY_URL}/${e}`;
+});
 
-const URL = 'https://excel2json.herokuapp.com/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip';
+// const URL = '/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip';
 
 const ping = client.ping({
   requestTimeout: 30000,
@@ -45,7 +47,7 @@ function mapField(field) {
 
 function createIndex() {
   // if exists return mapping
-  // else create index
+  // else create
   return client.indices.exists({
     index: INDEX,
   }).then((exists) => {
@@ -96,14 +98,14 @@ function putMapping(mapping) {
   });
 }
 
-function main(mapping) {
-  const count = 0;
+function web2es(mapping, url) {
   request
-    .get({ url: URL })
+    .get({ url })
     .on('error', (error) => {
       throw error
     })
     .pipe(JSONStream.parse())
+    // reduce produces a mapping if necessary
     .pipe(reduce((acc, data) => {
       addDocumentToIndex(data);
       const diff = difference(keys(data), keys(acc));
@@ -124,12 +126,11 @@ ping.then(() => {
   createIndex().then((mapping) => {
     let properties = {};
     if (mapping['poder-compranet']) {
-      // const index = mapping['poder-compranet'];
-      // console.log(index);
       properties = mapping['poder-compranet'].mappings.compranet.properties;
     }
-    // console.log(properties)
-    main(properties);
+    SOURCES.forEach((url) => {
+      web2es(properties, url);
+    });
   })
 }, (error) => {
   console.trace(error.message);
