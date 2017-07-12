@@ -15,6 +15,7 @@ const request = require('request')
 
 const INDEX = 'poder-compranet';
 const PROXY_URL = 'https://excel2json.herokuapp.com';
+const timestamp = new Date().getTime();
 const SOURCES = process.argv.slice(2).map((e) => {
   return `${PROXY_URL}/${e}`;
 });
