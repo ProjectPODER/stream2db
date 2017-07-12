@@ -85,12 +85,21 @@ function createIndex() {
   })
 }
 
-function addDocumentToIndex(doc) {
-  return client.create({
+function maybeAddDocument(doc, docHash) {
+  return client.exists({
     index: INDEX,
     type: 'compranet',
-    id: hash(doc),
-    body: doc,
+    id: docHash
+  }, (error, exists) => {
+    if (!exists) {
+      doc.timestamp = timestamp;
+      return client.index({
+        index: INDEX,
+        type: 'compranet',
+        id: docHash,
+        body: doc,
+      });
+    }
   });
 }
 
@@ -107,7 +116,7 @@ function putMapping(mapping) {
   return client.indices.putMapping({
     index: INDEX,
     type: 'compranet',
-    body: mapping
+    body: mapping,
   });
 }
 
@@ -120,12 +129,19 @@ function web2es(mapping, url) {
     .pipe(JSONStream.parse())
     // reduce produces a mapping if necessary
     .pipe(reduce((acc, data) => {
-      addDocumentToIndex(data);
-      const diff = difference(keys(data), keys(acc));
-      if (diff.length > 0) {
+      const dataHash = data.hash;
+      delete data.hash;
+      // check for document corruption
+      if (dataHash !== hash(data)) {
+        throw new Error('currupted document')
+      }
+      maybeAddDocument(data, dataHash);
+      if (keys(data).length > keys(acc).length) {
+        const diff = difference(keys(data), keys(acc));
         updateMapping(acc, diff);
       }
-    }, mapping)).on('data', (pMap) => {
+    }, mapping))
+    .on('data', (pMap) => {
       const diff = (difference(keys(mapping), keys(pMap)));
       if (diff > 1) {
         return putMapping(pMap);
