@@ -8,6 +8,7 @@ const request = require('request')
   , assign = require('lodash.assign')
   , elasticsearch = require('elasticsearch')
   , hash = require('object-hash')
+  , etl = require('etl')
   , client = new elasticsearch.Client({
    host: 'localhost:9200',
    log: 'trace',
@@ -27,35 +28,21 @@ const KNOWN_BOOLS = [
   'PLURIANUAL',
 ]
 
-// const URL = '/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip';
-
 const ping = client.ping({
   requestTimeout: 30000,
 });
 
-const propertiesMapDefault = {
-    "IMPORTE_CONTRATO": { "type": "float" },
-}
-
-function mapField(field) {
-  if (/FECHA/.test(field)) {
-    return {
-      type: "date",
-    }
-  }
-  if (/IMPORTE_CONTRATO/.test(field)) {
-    return {
-      type: "float",
-    }
-  }
-  if (KNOWN_BOOLS.indexOf(field) > -1) {
-    return {
-      type: "bool",
-    }
-  }
-  return {
-    type: "string",
-  }
+const propertiesMap = {
+  IMPORTE_CONTRATO: { type : "float" },
+  CONVENIO_MODIFICATORIO: {type: 'boolean'},
+  CONTRATO_MARCO: {type: 'boolean'},
+  COMPRA_CONSOLIDADA: {type: 'boolean'},
+  PLURIANUAL: {type: 'boolean'},
+  FECHA_FIN: { type: 'date'},
+  FECHA_INICIO: { type: 'date'},
+  FECHA_APERTURA_PROPOSICIONES: { type: 'date'},
+  FECHA_CELEBRACION: { type: 'date'},
+  timestamp: { type : "date", format: "epoch_millis" },
 }
 
 function createIndex() {
@@ -75,50 +62,12 @@ function createIndex() {
       body: {
         mappings: {
           compranet: {
-            properties: {
-              IMPORTE_CONTRATO: { type : "float" },
-              timestamp: { type : "date", format: "epoch_millis" },
-            }
+            properties: propertiesMap,
           }
         }
       }
     });
   })
-}
-
-function maybeAddDocument(doc, docHash) {
-  return client.exists({
-    index: INDEX,
-    type: 'compranet',
-    id: docHash
-  }, (error, exists) => {
-    if (!exists) {
-      doc.timestamp = timestamp;
-      return client.index({
-        index: INDEX,
-        type: 'compranet',
-        id: docHash,
-        body: doc,
-      });
-    }
-  });
-}
-
-function updateMapping(pMap, array) {
-  array.forEach((e) => {
-    const o = {};
-    o[e] = mapField(e);
-    assign(pMap, o);
-  })
-  return pMap;
-}
-
-function putMapping(mapping) {
-  return client.indices.putMapping({
-    index: INDEX,
-    type: 'compranet',
-    body: mapping,
-  });
 }
 
 function web2es(mapping, url) {
@@ -129,35 +78,41 @@ function web2es(mapping, url) {
     })
     .pipe(JSONStream.parse())
     // reduce produces a mapping if necessary
-    .pipe(reduce((acc, data) => {
-      const dataHash = data.hash;
-      delete data.hash;
+    .pipe(etl.map(data => {
       // check for document corruption
-      if (dataHash !== hash(data)) {
+      if (data.hash !== hash(data.body)) {
         throw new Error('currupted document')
       }
-      maybeAddDocument(data, dataHash);
-      if (keys(data).length > keys(acc).length) {
-        const diff = difference(keys(data), keys(acc));
-        updateMapping(acc, diff);
-      }
-    }, mapping))
-    .on('data', (pMap) => {
-      const diff = (difference(keys(mapping), keys(pMap)));
-      if (diff > 1) {
-        return putMapping(pMap);
-      }
-      return true;
-    });
+      const doc = mapValues(data.body, (v,k,o) => {
+        if (KNOWN_BOOLS.indexOf(k) > -1) {
+          if (v == 0) {
+            return false
+          }
+          if (v == 1) {
+            return true
+          }
+        }
+        return v;
+      });
+      // using CODIGO_CONTRATO as id
+      // new CCs will be inserted
+      // recurring CCs will overwrite previous
+      return Object.assign(doc, {
+        _id: data.body.CODIGO_CONTRATO,
+        hash: data.hash,
+      });
+    }))
+    .pipe(etl.collect(100))
+    .pipe(etl.elastic.index(client, INDEX, 'compranet', {
+        pushResults: true,
+    }))
+    .pipe(process.stdout)
 }
 
 ping.then(() => {
   console.log('Contacted elasticsearch');
   createIndex().then((mapping) => {
     let properties = {};
-    if (mapping['poder-compranet']) {
-      properties = mapping['poder-compranet'].mappings.compranet.properties;
-    }
     SOURCES.forEach((url) => {
       web2es(properties, url);
     });
