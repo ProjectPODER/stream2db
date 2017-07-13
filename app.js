@@ -1,10 +1,7 @@
 const request = require('request')
   , JSONStream = require('JSONStream')
-  , es = require('event-stream')
-  , reduce = require("stream-reduce")
   , mapValues = require('lodash.mapvalues')
   , keys = require('lodash.keys')
-  , difference = require('lodash.difference')
   , assign = require('lodash.assign')
   , elasticsearch = require('elasticsearch')
   , hash = require('object-hash')
@@ -15,6 +12,7 @@ const request = require('request')
  });
 
 const INDEX = 'poder-compranet';
+// const PROXY_URL = 'http://localhost:9000';
 const PROXY_URL = 'https://excel2json.herokuapp.com';
 const timestamp = new Date().getTime();
 const SOURCES = process.argv.slice(2).map((e) => {
@@ -26,7 +24,7 @@ const KNOWN_BOOLS = [
   'CONTRATO_MARCO',
   'COMPRA_CONSOLIDADA',
   'PLURIANUAL',
-]
+];
 
 const ping = client.ping({
   requestTimeout: 30000,
@@ -67,7 +65,7 @@ function createIndex() {
         }
       }
     });
-  })
+  });
 }
 
 function web2es(mapping, url) {
@@ -77,12 +75,12 @@ function web2es(mapping, url) {
       throw error
     })
     .pipe(JSONStream.parse())
-    // reduce produces a mapping if necessary
     .pipe(etl.map(data => {
       // check for document corruption
       if (data.hash !== hash(data.body)) {
         throw new Error('currupted document')
       }
+
       const doc = mapValues(data.body, (v,k,o) => {
         if (KNOWN_BOOLS.indexOf(k) > -1) {
           if (v == 0) {
