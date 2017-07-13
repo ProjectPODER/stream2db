@@ -68,6 +68,21 @@ function createIndex() {
   });
 }
 
+function valueMap(data) {
+  return mapValues(data, (v,k,o) => {
+   if (KNOWN_BOOLS.indexOf(k) > -1) {
+     if (v == 0) {
+       return false
+     }
+     if (v == 1) {
+       return true
+     }
+   }
+   return v;
+ });
+}
+
+const seen = [];
 function web2es(mapping, url) {
   request
     .get({ url })
@@ -80,26 +95,29 @@ function web2es(mapping, url) {
       if (data.hash !== hash(data.body)) {
         throw new Error('currupted document')
       }
-
-      const doc = mapValues(data.body, (v,k,o) => {
-        if (KNOWN_BOOLS.indexOf(k) > -1) {
-          if (v == 0) {
-            return false
-          }
-          if (v == 1) {
-            return true
-          }
+      if (data.body.CODIGO_CONTRATO) {
+        // throw away contracts w/ no code
+        if (seen.indexOf(data.body.CODIGO_CONTRATO) > -1) {
+          console.log(seen);
+          console.log(data.body);
+          throw new Error('duplicate contract code');
+        } else {
+          seen.push(data.body.CODIGO_CONTRATO);
         }
-        return v;
-      });
-      // using CODIGO_CONTRATO as id
-      // new CCs will be inserted
-      // recurring CCs will overwrite previous
-      return Object.assign(doc, {
-        _id: data.body.CODIGO_CONTRATO,
-        hash: data.hash,
-      });
+
+        const doc = valueMap(data.body);
+        // using CODIGO_CONTRATO as id
+        // new CCs will be inserted
+        // recurring CCs will overwrite previous
+        return Object.assign(doc, {
+          _id: data.body.CODIGO_CONTRATO,
+          hash: data.hash,
+        });
+      }
     }))
+    .on('error', (error) => {
+      throw error
+    })
     .pipe(etl.collect(100))
     .pipe(etl.elastic.index(client, INDEX, 'compranet', {
         pushResults: true,
