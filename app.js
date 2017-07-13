@@ -10,8 +10,8 @@ const request = require('request')
   , hash = require('object-hash')
   , etl = require('etl')
   , client = new elasticsearch.Client({
-   host: 'localhost:9200',
-   log: 'trace',
+      host: 'localhost:9200',
+    //  log: 'trace',
  });
 
 const INDEX = 'poder-compranet';
