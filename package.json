@@ -1,5 +1,5 @@
 {
-  "name": "stretch",
+  "name": "cnet2es",
   "version": "0.1.0",
   "description": "from json to elastic search index",
   "main": "app.js",
