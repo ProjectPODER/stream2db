@@ -1,5 +1,5 @@
 {
-  "name": "cnet2es",
+  "name": "stream2db",
   "version": "0.1.0",
   "description": "from json to elastic search index",
   "main": "app.js",
@@ -11,6 +11,7 @@
   "dependencies": {
     "JSONStream": "^1.3.1",
     "command-line-args": "^4.0.6",
+    "command-line-usage": "^4.0.0",
     "elasticsearch": "^13.2.0",
     "etl": "^0.5.6",
     "lodash.assign": "^4.2.0",
