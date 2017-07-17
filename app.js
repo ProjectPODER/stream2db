@@ -1,10 +1,10 @@
-const request = require('request')
-  , JSONStream = require('JSONStream')
-  , mapValues = require('lodash.mapvalues')
-  , keys = require('lodash.keys')
-  , hash = require('object-hash')
-  , etl = require('etl');
-
+const request = require('request');
+const JSONStream = require('JSONStream');
+const mapValues = require('lodash.mapvalues');
+const keys = require('lodash.keys');
+const hash = require('object-hash');
+const etl = require('etl');
+const through = require('through');
 const args = require('./lib/args');
 const db = require('./lib/db');
 const SOURCES = args.sources;
@@ -46,6 +46,42 @@ const seenContractCodes = [];
 const seenHashes = [];
 let countAll = 0;
 let countIndexed = 0;
+
+const ts = through(function write(data) {
+  // check for document corruption
+  if (data.hash !== hash(data.body)) {
+    throw new Error('currupted document')
+  }
+
+  // throw away contracts w/ out code
+  if (data.body.CODIGO_CONTRATO) {
+    countIndexed += 1;
+
+    const ci = seenContractCodes.indexOf(data.body.CODIGO_CONTRATO);
+    const hi = seenHashes.indexOf(data.hash);
+    const isIdenticalRow = (ci === hi);
+    if (ci > -1) {
+      console.log(`we've seen this code before`)
+      console.log(seenContractCodes[ci]);
+      console.log(seenHashes[hi]);
+      console.log(data.hash);
+      if (!isIdenticalRow) {
+        throw new Error('duplicate contract code');
+      }
+    } else {
+
+      seenContractCodes.push(data.body.CODIGO_CONTRATO);
+      seenHashes.push(data.hash);
+      // seenHashes.push(data.hash);
+      this.queue(data);
+    }
+  }
+      //this.pause()
+  },
+  function end () { //optional
+    this.emit('end')
+});
+
 function web2es(url) {
   request
     .get({ url })
@@ -53,29 +89,9 @@ function web2es(url) {
       throw error
     })
     .pipe(JSONStream.parse())
+    .pipe(ts)
     .pipe(etl.map(data => {
-      console.log(countIndexed);
       countAll += 1;
-      // check for document corruption
-      if (data.hash !== hash(data.body)) {
-        throw new Error('currupted document')
-      }
-      if (data.body.CODIGO_CONTRATO) {
-        countIndexed += 1;
-        // throw away contracts w/ no code
-
-        const ci = seenContractCodes.indexOf(data.body.CODIGO_CONTRATO);
-        const hi = seenHashes.indexOf(data.hash);
-        const isIdenticalRow = (ci === hi);
-        if (ci > -1) {
-          console.log(`we've seen this code before`)
-          console.log(seenContractCodes[ci]);
-          console.log(seenHashes[hi]);
-          console.log(data.hash);
-          if (!isIdenticalRow) {
-            throw new Error('duplicate contract code');
-          }
-        }
 
         const doc = valueMap(data.body);
         // using CODIGO_CONTRATO as id
@@ -86,31 +102,22 @@ function web2es(url) {
           hash: data.hash,
         });
 
-        seenContractCodes[countAll] = data.body.CODIGO_CONTRATO;
-        // seenContractCodes.push(data.body.CODIGO_CONTRATO);
-        seenHashes[countAll] = data.hash;
-        // seenHashes.push(data.hash);
-      }
     }))
     .on('error', (error) => {
       throw error
     })
-    .pipe(etl.collect(100))
+    .pipe(etl.collect(250))
     .pipe(cmd)
     .on('error', (error) => {
-      throw error
+      console.log(error)
     })
     .promise()
     .then((results) => {
       console.log(results);
       console.log(`indexed ${countIndexed} documents of ${countAll}`);
     }, e => console.log('error',e));
-    // .pipe(process.stdout)
 }
 
-//createIndex().then((mapping) => {
-//  let properties = {};
-  SOURCES.forEach((url) => {
-    web2es(url)// ;
-  });
-// })
+SOURCES.forEach((url) => {
+  web2es(url)// ;
+});
