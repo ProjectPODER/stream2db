@@ -115,6 +115,5 @@ function web2es(url) {
 }
 
 args.uris.forEach((url) => {
-  console.log(url);
   web2es(url)// ;
 });
