@@ -9,6 +9,11 @@ could be adapted to handle other data sources.
 
 As we are targeting local data managment, we have not yet added authorization.
 
+## Example
+Import compranet to elasticsearch using default options.
+
+    node app.js https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip
+
 ## Options
 
 You can set some options on the commandline.
