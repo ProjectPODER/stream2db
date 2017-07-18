@@ -1,12 +1,12 @@
 const request = require('request');
 const JSONStream = require('JSONStream');
-const mapValues = require('lodash.mapvalues');
 const keys = require('lodash.keys');
 const hash = require('object-hash');
 const etl = require('etl');
 const through = require('through');
 const args = require('./lib/args');
 const db = require('./lib/db');
+const valueMap = require('./lib/util').valueMap;
 
 let cmd;
 
@@ -15,30 +15,6 @@ if (args.db === 'mongo') {
   cmd = etl.mongo.insert(collection)
 } else {
   cmd = etl.elastic.index(db, args.db, 'compranet')
-}
-
-const KNOWN_BOOLS = [
-  'CONVENIO_MODIFICATORIO',
-  'CONTRATO_MARCO',
-  'COMPRA_CONSOLIDADA',
-  'PLURIANUAL',
-];
-
-function valueMap(data) {
-  return mapValues(data, (v,k,o) => {
-    if (/FECHA/.test(k)) {
-     return v.replace("GMT", "").trim();
-    }
-    if (KNOWN_BOOLS.indexOf(k) > -1) {
-      if (v == 0) {
-        return false;
-      }
-      if (v == 1) {
-        return true;
-      }
-    }
-    return v;
-  });
 }
 
 const seenContractCodes = [];
