@@ -12,7 +12,7 @@ As we are targeting local data managment, we have not yet added authorization.
 ## Example
 Import compranet to elasticsearch using default options.
 
-    node app.js https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip
+    node app.js https://excel2json.herokuapp.com/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip
 
 ## Options
 

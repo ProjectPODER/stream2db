@@ -114,7 +114,7 @@ function web2es(url) {
     }, e => console.log('error',e));
 }
 
-args.sources.forEach((url) => {
+args.uris.forEach((url) => {
   console.log(url);
   web2es(url)// ;
 });
