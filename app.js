@@ -91,5 +91,5 @@ function web2es(url) {
 }
 
 args.uris.forEach((url) => {
-  web2es(url)// ;
+  web2es(url);
 });
