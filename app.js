@@ -7,7 +7,6 @@ const etl = require('etl');
 const through = require('through');
 const args = require('./lib/args');
 const db = require('./lib/db');
-const SOURCES = args.sources;
 
 let cmd;
 
@@ -61,10 +60,7 @@ const ts = through(function write(data) {
     const hi = seenHashes.indexOf(data.hash);
     const isIdenticalRow = (ci === hi);
     if (ci > -1) {
-      console.log(`we've seen this code before`)
-      console.log(seenContractCodes[ci]);
-      console.log(seenHashes[hi]);
-      console.log(data.hash);
+      console.log(`we've seen ${seenContractCodes[ci]} before`)
       if (!isIdenticalRow) {
         throw new Error('duplicate contract code');
       }
@@ -118,6 +114,7 @@ function web2es(url) {
     }, e => console.log('error',e));
 }
 
-SOURCES.forEach((url) => {
+args.sources.forEach((url) => {
+  console.log(url);
   web2es(url)// ;
 });
