@@ -1,13 +1,13 @@
 # Stream2db
 
-Redirect a data source to database. `Stream2db` expects to receive JSON objects
-from the stream. Currently we support `mongodb` and `elasticsearch`. More
+Stream json documents or a csv file to a backend.
+Currently we support `mongodb` and `elasticsearch`. More
 backends could be added easily using the [node etl driver](https://github.com/ZJONSSON/node-etl).
 
-The intention of this module is to [stream compranet data](http://gitlab.rindecuentas.org/equipo-qqw/ellison) to a database, but it
-could be adapted to handle other data sources.
+We have a focus on [compranet data](http://gitlab.rindecuentas.org/equipo-qqw/ellison) but
+some work has been done to handle other data sources.
 
-As we are targeting local data managment, we have not yet added authorization.
+As we are targeting local data managment, we have not yet added DB authorization. We assume localhost
 
 ## Examples
 
@@ -27,10 +27,28 @@ As we are targeting local data managment, we have not yet added authorization.
 
 You can set some options on the commandline.
 
-    node app.js -h|--help
+    node app.js -h|--helpma
 
     --backend DB   Backend to save data to. [mongo|elastic]
     --db INDEX     Name of the database, index where data is written.
     --id ID        Supply a field to be used as _id field.
     --uris URIS    Space seperated list of urls to stream
     --help         Print this usage guide.
+
+## Notes
+
+### Type coercion
+
+We do very simple type coercion. Numbers should work.
+
+elasticsearch indexes (processes) data as it is inserted. So data types must be set in the mapping before data is inserted. It has dynamic types which will try to detect types (numbers, dates, etc) but the format of the data must conform to what is expected.
+
+In mongodb we can create the index after the data is inserted, so that is up to you.
+
+### duplicates
+
+We detect and dismiss duplicates using [object-hash](https://github.com/puleos/object-hash)
+
+### IDs
+
+If you do not provide an `idField` an `id` will be generated
