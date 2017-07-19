@@ -51,4 +51,4 @@ We detect and dismiss duplicates using [object-hash](https://github.com/puleos/o
 
 ### IDs
 
-If you do not provide an `idField` an `id` will be generated
+If you do not provide an *ID* field (`--id`) a random *ID* will be generated. If you do set the *ID* new documents with the same *ID* will replace their predecessors.
