@@ -9,76 +9,75 @@ const db = require('./lib/db');
 const valueMap = require('./lib/util').valueMap;
 
 let cmd;
-
+// cast ids if we don't have an id field
+let castIds = (!args.id);
+const insertOptions = {
+  concurrency: 10,
+}
 if (args.db === 'mongo') {
-  const collection = db.get('compranet', {castIds: false});
-  cmd = etl.mongo.insert(collection)
+  const collection = db.get('compranet', { castIds });
+  cmd = etl.mongo.insert(collection, insertOptions)
 } else {
-  cmd = etl.elastic.index(db, args.db, 'compranet')
+  cmd = etl.elastic.index(db, args.db, 'compranet', insertOptions)
 }
 
-const seenContractCodes = [];
 const seenHashes = [];
-let countAll = 0;
-let countIndexed = 0;
+let count = 0;
 
-const ts = through(function write(data) {
+const throughStdFormat = through(function write(data) {
   // check for document corruption
-  if (data.hash !== hash(data.body)) {
+  count += 1;
+  const networkHash = data.hash;
+  const idField = args.id;
+  const body = data.body || data;
+  const objectHash = hash(body);
+  body.hash = objectHash;
+
+  if (networkHash && networkHash !== objectHash) {
     throw new Error('currupted document')
   }
-
-  // throw away contracts w/ out code
-  if (data.body.CODIGO_CONTRATO) {
-    countIndexed += 1;
-
-    const ci = seenContractCodes.indexOf(data.body.CODIGO_CONTRATO);
-    const hi = seenHashes.indexOf(data.hash);
-    const isIdenticalRow = (ci === hi);
-    if (ci > -1) {
-      console.log(`we've seen ${seenContractCodes[ci]} before`)
-      if (!isIdenticalRow) {
-        throw new Error('duplicate contract code');
-      }
+  // filter out empty documents and
+  if (body) {
+    const i = seenHashes.indexOf(objectHash);
+    if (i < 0) {
+      // new document: index it!
+      seenHashes.push(objectHash);
+      this.queue(body);
     } else {
-
-      seenContractCodes.push(data.body.CODIGO_CONTRATO);
-      seenHashes.push(data.hash);
-      // seenHashes.push(data.hash);
-      this.queue(data);
+      console.log(`we've seen ${seenHashes[i]} before`)
     }
   }
-      //this.pause()
-  },
-  function end () { //optional
-    this.emit('end')
+
+  function end () {
+    this.emit('end');
+  };
+
 });
 
-function web2es(url) {
-  request
-    .get({ url })
+function web2es(stream) {
+    stream.on('error', (error) => {
+      throw error
+    })
+    .pipe(throughStdFormat)
     .on('error', (error) => {
       throw error
     })
-    .pipe(JSONStream.parse())
-    .pipe(ts)
     .pipe(etl.map(data => {
-      countAll += 1;
-
-        const doc = valueMap(data.body);
-        // using CODIGO_CONTRATO as id
-        // new CCs will be inserted
-        // recurring CCs will overwrite previous
+      const doc = valueMap(data);
+      // new Objects will be inserted
+      // recurring Objectss will overwrite previous
+      // with same _id
+      if (args.id) {
         return Object.assign(doc, {
-          _id: data.body.CODIGO_CONTRATO,
-          hash: data.hash,
+          _id: data[args.id],
         });
-
+      }
+      return doc;
     }))
     .on('error', (error) => {
       throw error
     })
-    .pipe(etl.collect(250))
+    // .pipe(etl.collect(250))
     .pipe(cmd)
     .on('error', (error) => {
       console.log(error)
@@ -86,10 +85,10 @@ function web2es(url) {
     .promise()
     .then((results) => {
       console.log(results);
-      console.log(`indexed ${countIndexed} documents of ${countAll}`);
+      console.log(`indexed ${count} documents`);
     }, e => console.log('error',e));
 }
 
-args.uris.forEach((url) => {
-  web2es(url);
+args.sources.forEach((stream) => {
+  web2es(stream);
 });
