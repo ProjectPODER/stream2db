@@ -27,7 +27,7 @@ As we are targeting local data managment, we have not yet added DB authorization
 
 You can set some options on the commandline.
 
-    node app.js -h|--helpma
+    node app.js -h|--help
 
     --backend DB   Backend to save data to. [mongo|elastic]
     --db INDEX     Name of the database, index where data is written.
