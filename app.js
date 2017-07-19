@@ -19,7 +19,7 @@ const insertOptions = {
 // cast ids if we don't have an id field
 const castIds = (!args.id);
 
-if (args.db === 'mongo') {
+if (args.backend === 'mongo') {
   const collection = db.get('compranet', { castIds });
   cmd = etl.mongo.insert(collection, insertOptions)
 } else {
