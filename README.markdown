@@ -9,10 +9,19 @@ could be adapted to handle other data sources.
 
 As we are targeting local data managment, we have not yet added authorization.
 
-## Example
-Import compranet to elasticsearch using default options.
+## Examples
+
+### Import compranet from streaming source to elasticsearch.
 
     node app.js https://excel2json.herokuapp.com/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip
+
+### Use *CODIGO_CONTRATO* as _id
+
+    node app.js -i CODIGO_CONTRATO https://excel2json.herokuapp.com/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip
+
+### Import CSV into *cargografias* index on elasticsearch
+
+    node app.js -d cargografias ~/Downloads/Cargografias\ v5\ -\ Nuevos_Datos_CHEQUEATON.csv
 
 ## Options
 
@@ -21,6 +30,7 @@ You can set some options on the commandline.
     node app.js -h|--help
 
     --backend DB   Backend to save data to. [mongo|elastic]
-    --db INDEX     Name of the database where data is written.
+    --db INDEX     Name of the database, index where data is written.
+    --id ID        Supply a field to be used as _id field.
     --uris URIS    Space seperated list of urls to stream
     --help         Print this usage guide.
