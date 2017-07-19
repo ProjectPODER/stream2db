@@ -9,20 +9,22 @@ const db = require('./lib/db');
 const valueMap = require('./lib/util').valueMap;
 
 let cmd;
-// cast ids if we don't have an id field
-let castIds = (!args.id);
+let count = 0;
+let dissmissed = 0;
+const seenHashes = [];
 const insertOptions = {
   concurrency: 10,
+  pushResults: true,
 }
+// cast ids if we don't have an id field
+const castIds = (!args.id);
+
 if (args.db === 'mongo') {
   const collection = db.get('compranet', { castIds });
   cmd = etl.mongo.insert(collection, insertOptions)
 } else {
   cmd = etl.elastic.index(db, args.db, 'compranet', insertOptions)
 }
-
-const seenHashes = [];
-let count = 0;
 
 const throughStdFormat = through(function write(data) {
   // check for document corruption
@@ -44,6 +46,7 @@ const throughStdFormat = through(function write(data) {
       seenHashes.push(objectHash);
       this.queue(body);
     } else {
+      dissmissed += 1;
       console.log(`we've seen ${seenHashes[i]} before`)
     }
   }
@@ -77,15 +80,14 @@ function web2es(stream) {
     .on('error', (error) => {
       throw error
     })
-    // .pipe(etl.collect(250))
+    .pipe(etl.collect(250))
     .pipe(cmd)
     .on('error', (error) => {
       console.log(error)
     })
     .promise()
     .then((results) => {
-      console.log(results);
-      console.log(`indexed ${count} documents`);
+      console.log(`saw ${count} documents. Dissmissed ${dissmissed}`);
     }, e => console.log('error',e));
 }
 
