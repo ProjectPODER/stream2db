@@ -37,6 +37,12 @@ You can set some options on the commandline.
 
 ## Notes
 
+We currently assume the backend is on localhost. This will get moved to some parameters.
+
+## cleanup
+
+strings are [normalized](https://www.npmjs.com/package/normalize-space) and [trimmed](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/trim).
+
 ### Type coercion
 
 We do very simple type coercion. Numbers should work.
@@ -45,9 +51,9 @@ elasticsearch indexes (processes) data as it is inserted. So data types must be 
 
 In mongodb we can create the index after the data is inserted, so that is up to you.
 
-### duplicates
+### hashes and duplicates
 
-We detect and dismiss duplicates using [object-hash](https://github.com/puleos/object-hash)
+We detect and dismiss duplicates using [object-hash](https://github.com/puleos/object-hash). We also add the field `hash` to the indexed document.
 
 ### IDs
 
