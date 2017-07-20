@@ -7,19 +7,23 @@ backends could be added easily using the [node etl driver](https://github.com/ZJ
 We have a focus on [compranet data](http://gitlab.rindecuentas.org/equipo-qqw/ellison) but
 some work has been done to handle other data sources.
 
-As we are targeting local data managment, we have not yet added DB authorization. We assume localhost
-
 ## Examples
 
 ### Import compranet from streaming source to elasticsearch.
+
+Since [ellison](http://gitlab.rindecuentas.org/equipo-qqw/ellison) hashes documents before sending them over the wire, those streams will get checked for data corruption.
 
     node app.js https://excel2json.herokuapp.com/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip
 
 ### Use *CODIGO_CONTRATO* as _id
 
+If you do not provide an *ID* field (`--id`) a random *ID* will be generated. If you do set the *ID* new documents with the same *ID* will replace their predecessors.
+
     node app.js -i CODIGO_CONTRATO https://excel2json.herokuapp.com/https://compranetinfo.funcionpublica.gob.mx/descargas/cnet/Contratos2013.zip
 
 ### Import CSV into *cargografias* index on elasticsearch
+
+You can use a csv file as your data source.
 
     node app.js -d cargografias ~/Downloads/Cargografias\ v5\ -\ Nuevos_Datos_CHEQUEATON.csv
 
@@ -37,9 +41,9 @@ You can set some options on the commandline.
 
 ## Notes
 
-We currently assume the backend is on localhost. This will get moved to some parameters.
+As we are targeting local data managment, we have not yet added DB authorization. Also, we currently assume the backend is on localhost. This will get moved to some parameters.
 
-## cleanup
+## Cleanup
 
 strings are [normalized](https://www.npmjs.com/package/normalize-space) and [trimmed](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/trim).
 
@@ -49,12 +53,8 @@ We do very simple type coercion. Numbers should work.
 
 elasticsearch indexes (processes) data as it is inserted. So data types must be set in the mapping before data is inserted. It has dynamic types which will try to detect types (numbers, dates, etc) but the format of the data must conform to what is expected.
 
-In mongodb we can create the index after the data is inserted, so that is up to you.
+In mongodb we can create the index after the data is inserted, so we leave that up to you.
 
-### hashes and duplicates
+### Hashes and Duplicates
 
 We detect and dismiss duplicates using [object-hash](https://github.com/puleos/object-hash). We also add the field `hash` to the indexed document.
-
-### IDs
-
-If you do not provide an *ID* field (`--id`) a random *ID* will be generated. If you do set the *ID* new documents with the same *ID* will replace their predecessors.
