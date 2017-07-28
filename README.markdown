@@ -39,6 +39,10 @@ You can set some options on the commandline.
     --uris URIS    Space seperated list of urls to stream
     --help         Print this usage guide.
 
+## Debugging
+
+The `--verbose` flag triggers debugging mode of the DB driver. En elasticsearch this is set to `log: trace`. The mongo driver allows for configuration by way of [variables in the enviornment](https://automattic.github.io/monk/docs/Debugging.html).
+
 ## Notes
 
 As we are targeting local data managment, we have not yet added DB authorization. Also, we currently assume the backend is on localhost. This will get moved to some parameters.
