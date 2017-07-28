@@ -23,6 +23,7 @@
     "lodash.keys": "^4.2.0",
     "lodash.mapvalues": "^4.6.0",
     "monk": "^6.0.1",
+    "monk-middleware-debug": "^0.2.0",
     "normalize-space": "^1.0.2",
     "object-hash": "1.1.8",
     "request": "^2.81.0",
