@@ -7,6 +7,10 @@ backends could be added easily using the [node etl driver](https://github.com/ZJ
 We have a focus on [compranet data](http://gitlab.rindecuentas.org/equipo-qqw/ellison) but
 some work has been done to handle other data sources.
 
+
+[![build status](http://gitlab.rindecuentas.org/equipo-qqw/stream2db/badges/master/build.svg)](http://gitlab.rindecuentas.org/equipo-qqw/stream2db/commits/master)
+
+
 ## Examples
 
 ### Import compranet from streaming source to elasticsearch.
