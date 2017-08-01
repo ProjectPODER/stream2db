@@ -4,8 +4,6 @@ const shortid = require('shortid');
 const etl = require('etl');
 const mainStream = require('../lib/parse');
 const args = require('../lib/args');
-const DBString = `TEST${shortid.generate()}`;
-const db = require('monk')(`localhost:27017/${DBString}`);
 const fPath = `${__dirname}/Contratos.csv`;
 const getDB = require('../lib/db');
 const fileStream = etl.file(fPath).pipe(etl.csv());
@@ -13,10 +11,15 @@ const fileStream = etl.file(fPath).pipe(etl.csv());
 Object.assign(args, {
   backend: 'mongo',
   uris: [fPath],
-  db: DBString,
   type: 'test',
 });
 
+let DBString = `localhost:27017/TEST${shortid.generate()}`;
+
+if (args.hasOwnProperty('href')) {
+  DBString = args.href;
+}
+const db = require('monk')(DBString);
 const collection = db.get(args.type, { castIds: false });
 
 fileStream.on('error', error => {
