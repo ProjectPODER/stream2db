@@ -1,0 +1,17 @@
+cache:
+  paths:
+  - node_modules/
+
+test:
+  image: node:alpine
+  stage: test
+  services:
+    - mongo
+  tags:
+   - dev
+  variables:
+    MONGODB_URI: 'mongodb://mongo/runner'
+    NODE_ENV: 'test'
+  script:
+   - npm install --silent
+   - npm run test
