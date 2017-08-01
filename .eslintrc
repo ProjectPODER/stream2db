@@ -12,6 +12,9 @@
     "before": true,
     "beforeEach": true
   },
+  "plugins": [
+    "chai-friendly"
+  ],
   rules: {
     "require-jsdoc": 'off',
     "lines-around-comment": off,
@@ -20,5 +23,7 @@
     "comma-dangle": ["error", "always-multiline"],
     "no-underscore-dangle": ["error", { "allow": ["_id"] }],
     "strict": ["error", "never"],
+    "no-unused-expressions": 0,
+    "chai-friendly/no-unused-expressions": 2
   },
 }
