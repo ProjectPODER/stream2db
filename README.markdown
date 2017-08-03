@@ -4,10 +4,6 @@ Stream json documents or a csv file to a backend.
 Currently we support `mongodb` and `elasticsearch`. More
 backends could be added easily using the [node etl driver](https://github.com/ZJONSSON/node-etl).
 
-We have a focus on [compranet data](http://gitlab.rindecuentas.org/equipo-qqw/ellison) but
-some work has been done to handle other data sources.
-
-
 [![build status](http://gitlab.rindecuentas.org/equipo-qqw/stream2db/badges/master/build.svg)](http://gitlab.rindecuentas.org/equipo-qqw/stream2db/commits/master)
 
 
@@ -36,12 +32,14 @@ You can use a csv file as your data source.
 You can set some options on the commandline.
 
     node app.js -h|--help
-
-    --backend DB   Backend to save data to. [mongo|elastic]
-    --db INDEX     Name of the database, index where data is written.
-    --id ID        Supply a field to be used as _id field.
-    --uris URIS    Space seperated list of urls to stream
-    --help         Print this usage guide.
+    --backend DATA BACKEND   Backend to save data to. [mongo|elastic]
+    --db INDEX|DB            Name of the index (elastic) or database (mongo) where data is written
+    --type TYPE|COLLECTION   Mapping type (elastic) or collection (mongo).
+    --id ID                  Specify a field to be used as _id. If hash is specified the object hash will be used
+    --uris URIS              Space seperated list of urls to stream
+    --host HOST              Host to stream to. Default is localhost
+    --port PORT              Port to stream to. Defaults to 9500 (elastic) or 27017 (mongo)
+    --help                   Print this usage guide.
 
 ## Debugging
 
@@ -49,7 +47,7 @@ The `--verbose` flag triggers debugging mode of the DB driver. En elasticsearch 
 
 ## Notes
 
-As we are targeting local data managment, we have not yet added DB authorization. Also, we currently assume the backend is on localhost. This will get moved to some parameters.
+As we are targeting local data managment, we have not yet added DB authorization. This will get added to the parameters.
 
 ## Cleanup
 
