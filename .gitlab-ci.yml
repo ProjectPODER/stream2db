@@ -8,7 +8,7 @@ test:
   services:
     - mongo
   tags:
-   - dev
+   - docker 
   variables:
     MONGODB_URI: 'mongodb://mongo/runner'
     NODE_ENV: 'test'
