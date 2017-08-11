@@ -1,14 +1,15 @@
+image: node:alpine
+
 cache:
   paths:
   - node_modules/
 
 test:
-  image: node:alpine
   stage: test
   services:
     - mongo
   tags:
-   - docker 
+   - node
   variables:
     MONGODB_URI: 'mongodb://mongo/runner'
     NODE_ENV: 'test'
