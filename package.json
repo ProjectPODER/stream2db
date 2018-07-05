@@ -1,11 +1,17 @@
 {
   "name": "stream2db",
-  "version": "0.1.0",
+  "version": "0.2.6",
   "description": "from json to elastic search index",
   "main": "app.js",
-  "bin": "./app.js",
+  "preferGlobal": "true",
+  "bin": {
+    "stream2db": "bin/app.js",
+    "cnet2Collection": "bin/cnet2Collection.sh",
+    "cnetCollection2Ocds": "bin/cnetCollection2Ocds.js"
+  },
   "scripts": {
-    "test": "./node_modules/.bin/mocha test/file2db.js"
+    "test": "./node_modules/.bin/mocha test/*.js",
+    "lint": "./node_modules/.bin/eslint '**/*.js'"
   },
   "repository": {
     "type": "git",
@@ -15,11 +21,13 @@
   "license": "ISC",
   "dependencies": {
     "JSONStream": "^1.3.1",
+    "cnet2ocds": "git+https://git@github.com/kyv/cnet2ocds.git",
     "command-line-args": "^4.0.6",
     "command-line-usage": "^4.0.0",
-    "elasticsearch": "^13.2.0",
+    "elasticsearch": "^14.0.0",
     "etl": "^0.5.6",
     "lodash.assign": "^4.2.0",
+    "lodash.isnull": "^3.0.0",
     "lodash.keys": "^4.2.0",
     "lodash.mapvalues": "^4.6.0",
     "lodash.omit": "^4.5.0",
@@ -27,9 +35,11 @@
     "monk-middleware-debug": "^0.2.0",
     "normalize-space": "^1.0.2",
     "object-hash": "1.1.8",
-    "request": "^2.81.0",
-    "through2-filter": "^2.0.0",
-    "through2-spy": "^2.0.0",
+    "object-sizeof": "^1.2.0",
+    "progress": "^2.0.0",
+    "readline": "^1.3.0",
+    "requestretry": "^1.12.2",
+    "through2": "^2.0.3",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {

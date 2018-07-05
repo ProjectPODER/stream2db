@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cnet-to-collection
+spec:
+  template:
+    spec:
+      containers:
+      - name: stream2db
+        image: poder/stream2db:0.2.6
+        args:
+        - cnet2Collection
+        env:
+        - name: "MONGODB_URI"
+          valueFrom:
+            secretKeyRef:
+              key: uri
+              name: mongodburi
+        - name: "NODE_ENV"
+          value: "production"
+      restartPolicy: Never
