@@ -6,7 +6,11 @@ backends could be added easily using the [node etl driver](https://github.com/ZJ
 
 ## install
 
+### Desde github (versión vieja)
     npm install -g git+https://git@github.com:kyv/stream2db.git
+
+### Desde gitlab (versión actual)
+    sudo npm install -g git+http://gitlab.rindecuentas.org/equipo-qqw/stream2db.git
 
 ## Examples
 
