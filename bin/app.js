@@ -43,14 +43,14 @@ else {
         const { backend, db: dbString, type } = args;
         const infoString = `contacted ${backend}, ${dbString}, ${type}\n`;
 
-        // process.stdout.write(infoString);
-        // console.time('duration');
+        process.stdout.write(infoString);
+        console.time('duration');
         mainStream(dataStream)
           .promise()
           .then(() => {
             db.close();
             // process.stdout.write(' ');
-            // console.timeEnd('duration');
+            console.timeEnd('duration');
         }, e => { process.stdout.write('error in stdin '); console.log(e); });
         dataStream.resume();
 
