@@ -49,9 +49,9 @@ else {
           .promise()
           .then(() => {
             db.close();
-            // process.stdout.write(' ');
+            process.stdout.write(' ');
             console.timeEnd('duration');
-        }, e => { process.stdout.write('error in stdin '); console.log(e); });
+        }, e => { process.stdout.write('error in stdin '); console.log(e); process.exit(1); });
         dataStream.resume();
 
     }).catch(error => {
