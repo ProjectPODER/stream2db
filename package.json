@@ -1,7 +1,7 @@
 {
   "name": "stream2db",
   "version": "0.2.6",
-  "description": "from json to elastic search index",
+  "description": "from json to mongo",
   "main": "app.js",
   "preferGlobal": "true",
   "bin": {
@@ -21,7 +21,6 @@
   "license": "ISC",
   "dependencies": {
     "JSONStream": "^1.3.5",
-    "cnet2ocds": "git+https://git@github.com/kyv/cnet2ocds.git",
     "command-line-args": "^4.0.6",
     "command-line-usage": "^4.0.0",
     "elasticsearch": "^14.0.0",
