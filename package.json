@@ -46,7 +46,7 @@
     "eslint-config-eslint": "^4.0.0",
     "eslint-plugin-chai-friendly": "^0.3.6",
     "hashids": "^1.1.1",
-    "mocha": "^3.4.2",
+    "mocha": "^6.2.2",
     "shortid": "^2.2.8",
     "should": "^11.2.1"
   }
