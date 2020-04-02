@@ -56,5 +56,6 @@ else {
 
     }).catch(error => {
         throw error;
+        process.exit(1);
     });
 }

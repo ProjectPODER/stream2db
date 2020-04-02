@@ -1,6 +1,6 @@
 {
   "name": "stream2db",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "from json to mongo",
   "main": "app.js",
   "preferGlobal": "true",
