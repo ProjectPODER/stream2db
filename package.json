@@ -1,13 +1,11 @@
 {
   "name": "stream2db",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "from json to mongo",
   "main": "app.js",
   "preferGlobal": "true",
   "bin": {
-    "stream2db": "bin/app.js",
-    "cnet2Collection": "bin/cnet2Collection.sh",
-    "cnetCollection2Ocds": "bin/cnetCollection2Ocds.js"
+    "stream2db": "bin/app.js"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha test/*.js",
@@ -17,7 +15,7 @@
     "type": "git",
     "url": "ssh://git@gitlab.rindecuentas.org:2203/equipo-qqw/stream2db.git"
   },
-  "author": "kevin@rindecuentas.org",
+  "author": "PODER",
   "license": "ISC",
   "dependencies": {
     "JSONStream": "^1.3.5",
