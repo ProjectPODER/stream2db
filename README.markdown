@@ -49,7 +49,17 @@ You can set some options on the commandline.
 
 ## Debugging
 
-The `--verbose` flag triggers debugging mode of the DB driver. En elasticsearch this is set to `log: trace`. The mongo driver allows for configuration by way of [variables in the enviornment](https://automattic.github.io/monk/docs/Debugging.html).
+The `--verbose` flag triggers debugging mode of the DB driver. In elasticsearch this is set to `log: trace`. The mongo driver allows for configuration by way of [variables in the enviornment](https://automattic.github.io/monk/docs/Debugging.html).
+
+For testing this is the recommended setup:
+* You need a JSON file to send via stdin, these should be the outputs of ocds_transformer
+* Run the following command:
+```
+cat ${CONTRACTS_JSON_FILE} | node --prof --inspect ./bin/app.js --verbose --backend mongo --db poppins --type test_stream2db --id hash --host ${MONGO_USERPASS}@${MONGO_HOST} --port ${MONGO_PORT}
+```
+
+* To profile memory during run, you can take a snapshot using Chromium from the `chrome://inspect` url
+* To profile execution time you can process the profiling files using this command: `node --prof-process [profile.log]`
 
 ## conversion
 
