@@ -9,9 +9,10 @@ const JSONStream = require('JSONStream');
 global.skippedRecords = 0;
 global.processedRecords = 0;
 
+const mainStream = require('../lib/parse');
+
 // FIXME first try internet and error out if no connection
 if (args.uris) {
-  const mainStream = require('../lib/parse');
   const sources = getSources(args.uris);
 
   ready.then(() => {
@@ -34,11 +35,10 @@ if (args.uris) {
     });
   }).catch(error => {
     throw error;
+    process.exit(1);
   });
 }
 else {
-    // console.log('tratando de procesar stdin');
-    const mainStream = require('../lib/parse');
     const dataStream = getStdin();
 
     ready.then(() => {
@@ -59,7 +59,7 @@ else {
         dataStream.resume();
 
     }).catch(error => {
-        throw error;
+        console.log('ERROR', error);
         process.exit(1);
     });
 }
