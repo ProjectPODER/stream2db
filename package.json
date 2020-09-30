@@ -23,7 +23,7 @@
     "command-line-args": "^4.0.6",
     "command-line-usage": "^4.0.0",
     "elasticsearch": "^16.7.1",
-    "etl": "^0.6.3",
+    "etl": "^0.6.12",
     "lodash.assign": "^4.2.0",
     "lodash.isnull": "^3.0.0",
     "lodash.keys": "^4.2.0",
