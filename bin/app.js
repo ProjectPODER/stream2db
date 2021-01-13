@@ -55,7 +55,12 @@ else {
             console.log('skipped:', skippedRecords);
             console.log('processed:', processedRecords);
             console.timeEnd('duration');
-        }, e => { process.stdout.write('error in stdin '); console.log(e); process.exit(1); });
+        }, e => {
+            process.stdout.write('error in stdin ');
+            if(backend == 'elastic') console.error("Error body", e.meta.body.error);
+            else console.log(e); 
+            process.exit(1);
+        });
         dataStream.resume();
 
     }).catch(error => {
