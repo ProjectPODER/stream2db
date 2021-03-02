@@ -49,7 +49,8 @@ else {
         console.time('duration');
         mainStream(dataStream)
           .promise()
-          .then(() => {
+          .then((e) => {
+            if(e.length > 0) { e[0].map(item => { console.log(item) }) }
             db.close();
             // Log important information
             console.log('skipped:', skippedRecords);
@@ -58,7 +59,7 @@ else {
         }, e => {
             process.stdout.write('error in stdin ');
             if(backend == 'elastic') console.error("Error body", e.meta.body.error);
-            else console.log(e); 
+            else console.log(e);
             process.exit(1);
         });
         dataStream.resume();
