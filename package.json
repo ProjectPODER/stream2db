@@ -1,6 +1,6 @@
 {
   "name": "stream2db",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "from json to mongo/elasticsearch",
   "main": "app.js",
   "preferGlobal": "true",
